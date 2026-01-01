@@ -2710,7 +2710,7 @@ enum ieee80211_hw_flags {
 	IEEE80211_HW_WANT_MONITOR_VIF,
 	IEEE80211_HW_NO_AUTO_VIF,
 	IEEE80211_HW_SW_CRYPTO_CONTROL,
-	IEEE80211_HW_SUPPORT_FAST_XMIT,
+	IEEE80211_HW_SUPPORT_FAST_XMIT,			// 支持快速发送
 	IEEE80211_HW_REPORTS_TX_ACK_STATUS,
 	IEEE80211_HW_CONNECTION_MONITOR,
 	IEEE80211_HW_QUEUE_CONTROL,
@@ -2720,8 +2720,8 @@ enum ieee80211_hw_flags {
 	IEEE80211_HW_SUPPORTS_RC_TABLE,
 	IEEE80211_HW_P2P_DEV_ADDR_FOR_INTF,
 	IEEE80211_HW_TIMING_BEACON_ONLY,
-	IEEE80211_HW_SUPPORTS_HT_CCK_RATES,
-	IEEE80211_HW_CHANCTX_STA_CSA,
+	IEEE80211_HW_SUPPORTS_HT_CCK_RATES,		// 支持 VHT 的拓展空间流和带宽
+	IEEE80211_HW_CHANCTX_STA_CSA,			// STA 模式下支持信道切换公告
 	IEEE80211_HW_SUPPORTS_CLONED_SKBS,
 	IEEE80211_HW_SINGLE_SCAN_ON_ALL_BANDS,
 	IEEE80211_HW_TDLS_WIDER_BW,
@@ -4295,91 +4295,91 @@ struct ieee80211_prep_tx_info {
  *	at this point, since the callback can be called during netdev teardown.
  */
 struct ieee80211_ops {
-	void (*tx)(struct ieee80211_hw *hw,
+	void (*tx)(struct ieee80211_hw *hw,					// 发送帧
 		   struct ieee80211_tx_control *control,
 		   struct sk_buff *skb);
-	int (*start)(struct ieee80211_hw *hw);
-	void (*stop)(struct ieee80211_hw *hw);
+	int (*start)(struct ieee80211_hw *hw);				// 硬件初始化，打开射频，开始接收帧
+	void (*stop)(struct ieee80211_hw *hw);				// 关闭硬件，停止所有操作
 #ifdef CONFIG_PM
-	int (*suspend)(struct ieee80211_hw *hw, struct cfg80211_wowlan *wowlan);
-	int (*resume)(struct ieee80211_hw *hw);
-	void (*set_wakeup)(struct ieee80211_hw *hw, bool enabled);
+	int (*suspend)(struct ieee80211_hw *hw, struct cfg80211_wowlan *wowlan);	// 挂起
+	int (*resume)(struct ieee80211_hw *hw);										// 恢复
+	void (*set_wakeup)(struct ieee80211_hw *hw, bool enabled);					// 唤醒配置
 #endif
-	int (*add_interface)(struct ieee80211_hw *hw,
-			     struct ieee80211_vif *vif);
-	int (*change_interface)(struct ieee80211_hw *hw,
+	int (*add_interface)(struct ieee80211_hw *hw,		// 添加接口（STA/AP 等）
+			     struct ieee80211_vif *vif);			
+	int (*change_interface)(struct ieee80211_hw *hw,	// 改变接口类型	
 				struct ieee80211_vif *vif,
 				enum nl80211_iftype new_type, bool p2p);
-	void (*remove_interface)(struct ieee80211_hw *hw,
+	void (*remove_interface)(struct ieee80211_hw *hw,	// 移除接口
 				 struct ieee80211_vif *vif);
-	int (*config)(struct ieee80211_hw *hw, u32 changed);
-	void (*bss_info_changed)(struct ieee80211_hw *hw,
+	int (*config)(struct ieee80211_hw *hw, u32 changed);	// 配置更新，硬件配置（信道等）
+	void (*bss_info_changed)(struct ieee80211_hw *hw,		// BSS 信息变化
 				 struct ieee80211_vif *vif,
 				 struct ieee80211_bss_conf *info,
 				 u64 changed);
-	void (*vif_cfg_changed)(struct ieee80211_hw *hw,
+	void (*vif_cfg_changed)(struct ieee80211_hw *hw,		// 虚拟接口配置变化
 				struct ieee80211_vif *vif,
 				u64 changed);
-	void (*link_info_changed)(struct ieee80211_hw *hw,
+	void (*link_info_changed)(struct ieee80211_hw *hw,		// 链路信息变化(MLO等)
 				  struct ieee80211_vif *vif,
 				  struct ieee80211_bss_conf *info,
 				  u64 changed);
 
-	int (*start_ap)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+	int (*start_ap)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,	// 启动 AP 模式
 			struct ieee80211_bss_conf *link_conf);
-	void (*stop_ap)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+	void (*stop_ap)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,	// 停止 AP 模式
 			struct ieee80211_bss_conf *link_conf);
 
-	u64 (*prepare_multicast)(struct ieee80211_hw *hw,
+	u64 (*prepare_multicast)(struct ieee80211_hw *hw,		// 准备多播过滤
 				 struct netdev_hw_addr_list *mc_list);
-	void (*configure_filter)(struct ieee80211_hw *hw,
+	void (*configure_filter)(struct ieee80211_hw *hw,		// 配置接收过滤器
 				 unsigned int changed_flags,
 				 unsigned int *total_flags,
 				 u64 multicast);
-	void (*config_iface_filter)(struct ieee80211_hw *hw,
+	void (*config_iface_filter)(struct ieee80211_hw *hw,	// 接口级过滤
 				    struct ieee80211_vif *vif,
 				    unsigned int filter_flags,
 				    unsigned int changed_flags);
 	int (*set_tim)(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
 		       bool set);
-	int (*set_key)(struct ieee80211_hw *hw, enum set_key_cmd cmd,
+	int (*set_key)(struct ieee80211_hw *hw, enum set_key_cmd cmd,	// 设置/删除密钥
 		       struct ieee80211_vif *vif, struct ieee80211_sta *sta,
 		       struct ieee80211_key_conf *key);
-	void (*update_tkip_key)(struct ieee80211_hw *hw,
+	void (*update_tkip_key)(struct ieee80211_hw *hw,		// 更新 TKIP 秘钥
 				struct ieee80211_vif *vif,
 				struct ieee80211_key_conf *conf,
 				struct ieee80211_sta *sta,
 				u32 iv32, u16 *phase1key);
-	void (*set_rekey_data)(struct ieee80211_hw *hw,
+	void (*set_rekey_data)(struct ieee80211_hw *hw,			// 设置重秘钥数据
 			       struct ieee80211_vif *vif,
 			       struct cfg80211_gtk_rekey_data *data);
-	void (*set_default_unicast_key)(struct ieee80211_hw *hw,
+	void (*set_default_unicast_key)(struct ieee80211_hw *hw,	// 设置默认单播秘钥
 					struct ieee80211_vif *vif, int idx);
-	int (*hw_scan)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+	int (*hw_scan)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,	// 启动硬件扫描
 		       struct ieee80211_scan_request *req);
-	void (*cancel_hw_scan)(struct ieee80211_hw *hw,
+	void (*cancel_hw_scan)(struct ieee80211_hw *hw,				// 取消硬件扫描
 			       struct ieee80211_vif *vif);
-	int (*sched_scan_start)(struct ieee80211_hw *hw,
+	int (*sched_scan_start)(struct ieee80211_hw *hw,		// 启动定时扫描
 				struct ieee80211_vif *vif,
 				struct cfg80211_sched_scan_request *req,
 				struct ieee80211_scan_ies *ies);
-	int (*sched_scan_stop)(struct ieee80211_hw *hw,
+	int (*sched_scan_stop)(struct ieee80211_hw *hw,			// 停止定时扫描
 			       struct ieee80211_vif *vif);
-	void (*sw_scan_start)(struct ieee80211_hw *hw,
+	void (*sw_scan_start)(struct ieee80211_hw *hw,			// 软件扫描开始通知
 			      struct ieee80211_vif *vif,
 			      const u8 *mac_addr);
-	void (*sw_scan_complete)(struct ieee80211_hw *hw,
+	void (*sw_scan_complete)(struct ieee80211_hw *hw,		// 软件扫描完成通知
 				 struct ieee80211_vif *vif);
 	int (*get_stats)(struct ieee80211_hw *hw,
 			 struct ieee80211_low_level_stats *stats);
-	void (*get_key_seq)(struct ieee80211_hw *hw,
+	void (*get_key_seq)(struct ieee80211_hw *hw,		// 获取秘钥序列号
 			    struct ieee80211_key_conf *key,
 			    struct ieee80211_key_seq *seq);
-	int (*set_frag_threshold)(struct ieee80211_hw *hw, u32 value);
-	int (*set_rts_threshold)(struct ieee80211_hw *hw, u32 value);
-	int (*sta_add)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+	int (*set_frag_threshold)(struct ieee80211_hw *hw, u32 value);		// 设置分片阈值
+	int (*set_rts_threshold)(struct ieee80211_hw *hw, u32 value);		// 设置 RTS 阈值
+	int (*sta_add)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,	// 终端关联
 		       struct ieee80211_sta *sta);
-	int (*sta_remove)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+	int (*sta_remove)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,	// 终端解除关联
 			  struct ieee80211_sta *sta);
 #ifdef CONFIG_MAC80211_DEBUGFS
 	void (*vif_add_debugfs)(struct ieee80211_hw *hw,
@@ -4481,11 +4481,11 @@ struct ieee80211_ops {
 		      u32 queues, bool drop);
 	void (*flush_sta)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 			  struct ieee80211_sta *sta);
-	void (*channel_switch)(struct ieee80211_hw *hw,
+	void (*channel_switch)(struct ieee80211_hw *hw,		// 信道切换
 			       struct ieee80211_vif *vif,
 			       struct ieee80211_channel_switch *ch_switch);
-	int (*set_antenna)(struct ieee80211_hw *hw, u32 tx_ant, u32 rx_ant);
-	int (*get_antenna)(struct ieee80211_hw *hw, u32 *tx_ant, u32 *rx_ant);
+	int (*set_antenna)(struct ieee80211_hw *hw, u32 tx_ant, u32 rx_ant);	// 设置天线 （TX/RX）
+	int (*get_antenna)(struct ieee80211_hw *hw, u32 *tx_ant, u32 *rx_ant);	// 获取当前天线配置
 
 	int (*remain_on_channel)(struct ieee80211_hw *hw,
 				 struct ieee80211_vif *vif,
@@ -4497,10 +4497,10 @@ struct ieee80211_ops {
 	int (*set_ringparam)(struct ieee80211_hw *hw, u32 tx, u32 rx);
 	void (*get_ringparam)(struct ieee80211_hw *hw,
 			      u32 *tx, u32 *tx_max, u32 *rx, u32 *rx_max);
-	bool (*tx_frames_pending)(struct ieee80211_hw *hw);
-	int (*set_bitrate_mask)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+	bool (*tx_frames_pending)(struct ieee80211_hw *hw);	// 检查是否有待发送帧
+	int (*set_bitrate_mask)(struct ieee80211_hw *hw, struct ieee80211_vif *vif,	// 设置速率掩码
 				const struct cfg80211_bitrate_mask *mask);
-	void (*event_callback)(struct ieee80211_hw *hw,
+	void (*event_callback)(struct ieee80211_hw *hw,		// 事件通知(认证/关联等)
 			       struct ieee80211_vif *vif,
 			       const struct ieee80211_event *event);
 
@@ -4563,14 +4563,14 @@ struct ieee80211_ops {
 				 struct ieee80211_vif *vif,
 				 struct inet6_dev *idev);
 #endif
-	void (*channel_switch_beacon)(struct ieee80211_hw *hw,
+	void (*channel_switch_beacon)(struct ieee80211_hw *hw,	// 信标中的信道切换
 				      struct ieee80211_vif *vif,
 				      struct cfg80211_chan_def *chandef);
-	int (*pre_channel_switch)(struct ieee80211_hw *hw,
+	int (*pre_channel_switch)(struct ieee80211_hw *hw,		// 切换前准备
 				  struct ieee80211_vif *vif,
 				  struct ieee80211_channel_switch *ch_switch);
 
-	int (*post_channel_switch)(struct ieee80211_hw *hw,
+	int (*post_channel_switch)(struct ieee80211_hw *hw,		// 切换后处理
 				   struct ieee80211_vif *vif,
 				   struct ieee80211_bss_conf *link_conf);
 	void (*abort_channel_switch)(struct ieee80211_hw *hw,
@@ -4598,9 +4598,9 @@ struct ieee80211_ops {
 					 struct ieee80211_vif *vif,
 					 struct ieee80211_tdls_ch_sw_params *params);
 
-	void (*wake_tx_queue)(struct ieee80211_hw *hw,
+	void (*wake_tx_queue)(struct ieee80211_hw *hw,		// 唤醒发送队列
 			      struct ieee80211_txq *txq);
-	void (*sync_rx_queues)(struct ieee80211_hw *hw);
+	void (*sync_rx_queues)(struct ieee80211_hw *hw);	// 同步接收队列
 
 	int (*start_nan)(struct ieee80211_hw *hw,
 			 struct ieee80211_vif *vif,

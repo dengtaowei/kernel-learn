@@ -4989,6 +4989,7 @@ static int mac80211_hwsim_new_radio(struct genl_info *info,
 		ops = &mac80211_hwsim_mlo_ops;
 	else if (param->use_chanctx)
 		ops = &mac80211_hwsim_mchan_ops;
+	/* dengtaowei 申请一个硬件设备，对 radio 的抽象 */
 	hw = ieee80211_alloc_hw_nm(sizeof(*data), ops, param->hwname);
 	if (!hw) {
 		pr_debug("mac80211_hwsim: ieee80211_alloc_hw failed\n");
@@ -5003,11 +5004,13 @@ static int mac80211_hwsim_new_radio(struct genl_info *info,
 		net = genl_info_net(info);
 	else
 		net = &init_net;
+	/* dengtaowei 设置无线物理设备所属的网络命名空间 */
 	wiphy_net_set(hw->wiphy, net);
 
 	data = hw->priv;
 	data->hw = hw;
 
+	/* dengtaowei 非正式使用的无线接口，用处不明 */
 	data->dev = device_create(hwsim_class, NULL, 0, hw, "hwsim%d", idx);
 	if (IS_ERR(data->dev)) {
 		printk(KERN_DEBUG

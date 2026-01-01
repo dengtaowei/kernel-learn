@@ -5593,77 +5593,78 @@ struct wiphy_iftype_akm_suites {
  *	specify a mac address).
  */
 struct wiphy {
-	struct mutex mtx;
+	struct mutex mtx;					// 互斥锁，保护 wiphy 结构体
 
 	/* assign these fields before you register the wiphy */
 
-	u8 perm_addr[ETH_ALEN];
-	u8 addr_mask[ETH_ALEN];
+	u8 perm_addr[ETH_ALEN];				// 永久 MAC 地址（硬件地址）
+	u8 addr_mask[ETH_ALEN];				// MAC 地址掩码
 
-	struct mac_address *addresses;
+	struct mac_address *addresses;		// 支持的 MAC 地址列表
 
-	const struct ieee80211_txrx_stypes *mgmt_stypes;
+	const struct ieee80211_txrx_stypes *mgmt_stypes;  // 管理帧类型支持
 
-	const struct ieee80211_iface_combination *iface_combinations;
-	int n_iface_combinations;
-	u16 software_iftypes;
+	const struct ieee80211_iface_combination *iface_combinations;  // 接口组合限制（例如：不能同时开启 AP 和 Mesh）
+	int n_iface_combinations;			
+	u16 software_iftypes;				// 软件支持的接口类型
 
-	u16 n_addresses;
+	u16 n_addresses;					// 地址数量
 
 	/* Supported interface modes, OR together BIT(NL80211_IFTYPE_...) */
-	u16 interface_modes;
+	u16 interface_modes;				// 支持的接口模式位掩码
 
-	u16 max_acl_mac_addrs;
+	u16 max_acl_mac_addrs;				// ACL 最大 MAC 地址数
 
-	u32 flags, regulatory_flags, features;
-	u8 ext_features[DIV_ROUND_UP(NUM_NL80211_EXT_FEATURES, 8)];
+	u32 flags, regulatory_flags, features;  // 通用、监督标志位，硬件特性位掩码
+	u8 ext_features[DIV_ROUND_UP(NUM_NL80211_EXT_FEATURES, 8)];  // 拓展特性
 
-	u32 ap_sme_capa;
+	u32 ap_sme_capa;					// AP 模式 SME 能力
 
-	enum cfg80211_signal_type signal_type;
+	enum cfg80211_signal_type signal_type;  // 信号强度类型（dBm/mBm）
 
-	int bss_priv_size;
-	u8 max_scan_ssids;
-	u8 max_sched_scan_reqs;
-	u8 max_sched_scan_ssids;
-	u8 max_match_sets;
-	u16 max_scan_ie_len;
-	u16 max_sched_scan_ie_len;
-	u32 max_sched_scan_plans;
-	u32 max_sched_scan_plan_interval;
-	u32 max_sched_scan_plan_iterations;
+	int bss_priv_size;					// BSS 私有数据大小
+	u8 max_scan_ssids;					// 最大扫描 SSID 数
+	u8 max_sched_scan_reqs;				// 最大计划扫描请求数
+	u8 max_sched_scan_ssids;			// 最大计划扫描 SSID 数
+	u8 max_match_sets;					// 最大匹配集数
+	u16 max_scan_ie_len;				// 最大扫描信息元素长度
+	u16 max_sched_scan_ie_len;			// 最大计划扫描 IE 长度
+	u32 max_sched_scan_plans;			// 最大扫描计划数
+	u32 max_sched_scan_plan_interval;	// 最大扫描计划间隔
+	u32 max_sched_scan_plan_iterations;	// 最大扫描计划迭代次数
 
-	int n_cipher_suites;
-	const u32 *cipher_suites;
+	int n_cipher_suites;				// 支持的加密套件数目
+	const u32 *cipher_suites;			// 加密套件列表
 
-	int n_akm_suites;
-	const u32 *akm_suites;
+	int n_akm_suites;					// AKM（认证密钥管理）套件数量
+	const u32 *akm_suites;				// AKM 套件列表
 
+	// 接口类型特定的 AKM 套件
 	const struct wiphy_iftype_akm_suites *iftype_akm_suites;
 	unsigned int num_iftype_akm_suites;
 
-	u8 retry_short;
-	u8 retry_long;
-	u32 frag_threshold;
-	u32 rts_threshold;
-	u8 coverage_class;
+	u8 retry_short;						// 短帧重试次数
+	u8 retry_long;						// 长帧重试次数
+	u32 frag_threshold;					// 分片阈值（字节）
+	u32 rts_threshold;					// RTS 阈值（字节）
+	u8 coverage_class;					// 覆盖等级（用于计算空时）
 
-	char fw_version[ETHTOOL_FWVERS_LEN];
-	u32 hw_version;
+	char fw_version[ETHTOOL_FWVERS_LEN];	// 固件版本
+	u32 hw_version;							// 硬件版本
 
 #ifdef CONFIG_PM
-	const struct wiphy_wowlan_support *wowlan;
-	struct cfg80211_wowlan *wowlan_config;
+	const struct wiphy_wowlan_support *wowlan;  // WoWLAN 支持
+	struct cfg80211_wowlan *wowlan_config;		// WoWLAN 配置
 #endif
 
-	u16 max_remain_on_channel_duration;
+	u16 max_remain_on_channel_duration;			// 最大驻留信道时间
 
-	u8 max_num_pmkids;
+	u8 max_num_pmkids;					// 最大 PMKID 数量
 
-	u32 available_antennas_tx;
-	u32 available_antennas_rx;
+	u32 available_antennas_tx;			// 可用发射天线（位掩码）
+	u32 available_antennas_rx;			// 可用接收天线（位掩码）
 
-	u32 probe_resp_offload;
+	u32 probe_resp_offload;				
 
 	const u8 *extended_capabilities, *extended_capabilities_mask;
 	u8 extended_capabilities_len;
@@ -5673,6 +5674,7 @@ struct wiphy {
 
 	const void *privid;
 
+	// 支持的频段（2.4 GHz，5 GHz，6 GHz 等）
 	struct ieee80211_supported_band *bands[NUM_NL80211_BANDS];
 
 	void (*reg_notifier)(struct wiphy *wiphy,
@@ -5682,18 +5684,18 @@ struct wiphy {
 
 	const struct ieee80211_regdomain __rcu *regd;
 
-	struct device dev;
+	struct device dev;					// 关联的设备结构
 
-	bool registered;
+	bool registered;					// 是否已注册
 
-	struct dentry *debugfsdir;
+	struct dentry *debugfsdir;			// debugfs 目录
 
 	const struct ieee80211_ht_cap *ht_capa_mod_mask;
 	const struct ieee80211_vht_cap *vht_capa_mod_mask;
 
 	struct list_head wdev_list;
 
-	possible_net_t _net;
+	possible_net_t _net;				// 所属网络命名空间
 
 #ifdef CONFIG_CFG80211_WEXT
 	const struct iw_handler_def *wext;
@@ -5713,14 +5715,14 @@ struct wiphy {
 
 	u8 nan_supported_bands;
 
-	u32 txq_limit;
-	u32 txq_memory_limit;
-	u32 txq_quantum;
+	u32 txq_limit;						// 发送队列限制
+	u32 txq_memory_limit;				// 发送队列内存限制
+	u32 txq_quantum;					// 发送队列量子
 
-	unsigned long tx_queue_len;
+	unsigned long tx_queue_len;			// 发送队列长度
 
-	u8 support_mbssid:1,
-	   support_only_he_mbssid:1;
+	u8 support_mbssid:1,				// 是否支持多 BSSID
+	   support_only_he_mbssid:1;		// 是否仅支持 HE MBSSID
 
 	const struct cfg80211_pmsr_capabilities *pmsr_capa;
 
@@ -5729,15 +5731,15 @@ struct wiphy {
 		u8 max_retry;
 	} tid_config_support;
 
-	u8 max_data_retry_count;
+	u8 max_data_retry_count;			// 最大数目重试次数
 
 	const struct cfg80211_sar_capa *sar_capa;
 
 	struct rfkill *rfkill;
 
-	u8 mbssid_max_interfaces;
-	u8 ema_max_profile_periodicity;
-	u16 max_num_akm_suites;
+	u8 mbssid_max_interfaces;			// MBSSID 最大接口数
+	u8 ema_max_profile_periodicity;		// EMA 最大配置文件周期性
+	u16 max_num_akm_suites;				// 最大 AKM 套件数
 
 	u16 hw_timestamp_max_peers;
 
