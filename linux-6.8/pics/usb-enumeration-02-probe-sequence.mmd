@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant Core as USB core
+    participant DD as 驱动核心
+    participant Gen as usb 通用驱动
+    participant Mod as 功能 usb_driver
+
+    Core->>DD: device_add(usb_device)
+    DD->>Gen: usb_device_match + usb_probe_device
+    Gen->>Core: usb_set_configuration
+    loop 每个 interface
+        Core->>DD: device_add(interface)
+        DD->>Mod: usb_match_id
+        DD->>Mod: usb_probe_interface
+        Mod->>Mod: driver.probe(intf, id)
+    end

@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant DTS as 设备树
+    participant STM32 as stm32 pinctrl
+    participant Core as pinctrl 核心
+    participant Dev as 外设 (I2C1)
+    participant GPIO as GPIO 硬件
+
+    Note over DTS,GPIO: 阶段 A — pinctrl probe
+    DTS->>STM32: pins { pinmux = <0x5E06> }
+    STM32->>Core: pinctrl_map (PF14, af5)
+
+    Note over DTS,GPIO: 阶段 B — 外设绑定 pinctrl
+    Dev->>Core: pinctrl_get()
+    Core->>Core: setting (func=6, group=i)
+
+    Note over DTS,GPIO: 阶段 C — 应用 state
+    Dev->>Core: pinctrl_select_state()
+    Core->>STM32: set_mux(6, i)
+    STM32->>GPIO: writel MODER / AFR

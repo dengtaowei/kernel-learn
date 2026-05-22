@@ -1,0 +1,9 @@
+flowchart LR
+    U["u32 0x5E06"] --> PIN["pin=94"]
+    U --> FUNC["func=6"]
+    PIN --> GRP["group 名 PF14"]
+    FUNC --> FN["function 名 af5"]
+    FUNC --> SOC["SoC pin 表校验"]
+    GRP --> MAP["pinctrl_map"]
+    FN --> MAP
+    SOC --> MAP

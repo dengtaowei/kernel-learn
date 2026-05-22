@@ -1,0 +1,14 @@
+flowchart LR
+    subgraph R1["第一轮 device"]
+        A1{usb_device_driver?} -->|否| X1[不匹配]
+        A1 -->|是| A2{无表且无 match?}
+        A2 -->|是| P1[usb_probe_device]
+        A2 -->|否| A3[usb_driver_applicable] --> P1
+        P1 --> SC[usb_set_configuration]
+    end
+    subgraph R2["第二轮 interface"]
+        B1{usb_driver?} -->|否| X2[不匹配]
+        B1 -->|是| B2[usb_match_id] --> P2[usb_probe_interface]
+        P2 --> P3[driver.probe]
+    end
+    SC --> R2

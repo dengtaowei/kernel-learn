@@ -1,0 +1,31 @@
+flowchart TB
+    subgraph DT["设备树 (DTS)"]
+        N1["pinctrl 状态节点<br/>i2c1_pins_a: i2c1-0"]
+        N2["pins 子节点"]
+        P1["pinmux = STM32_PINMUX('F',14,AF5)<br/>→ u32: 0x5E06 (pin=94, func=6)"]
+        P2["可选 pinconf"]
+        N1 --> N2 --> P1
+        N2 --> P2
+    end
+
+    subgraph PhaseA["阶段 A · probe · 生成 map"]
+        A1["stm32_pctrl_dt_node_to_map"]
+        A2["stm32_pctrl_dt_subnode_to_map"]
+        A3["pin=94, func=6 → 校验 SoC 表"]
+        A6["map: group='PF14', function='af5'"]
+        A1 --> A2 --> A3 --> A6
+    end
+
+    subgraph PhaseB["阶段 B · pinctrl_get · map→setting"]
+        B2["pinmux_map_to_setting"]
+        B5["setting: func=6, group=i"]
+        B2 --> B5
+    end
+
+    subgraph PhaseC["阶段 C · select_state · 写硬件"]
+        C3["stm32_pmx_set_mux(6, i)"]
+        C6["GPIOF MODER / AFR"]
+        C3 --> C6
+    end
+
+    DT --> PhaseA --> PhaseB --> PhaseC

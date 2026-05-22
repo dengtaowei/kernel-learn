@@ -1,0 +1,5 @@
+flowchart LR
+    F["func=6"] --> R4["mode=2, alt=5"]
+    G["group=i"] --> R1["g=groups+i"] --> R2["pin=94"] --> R3["GPIOF pin14"]
+    R3 --> H["MODER / AFR"]
+    R4 --> H

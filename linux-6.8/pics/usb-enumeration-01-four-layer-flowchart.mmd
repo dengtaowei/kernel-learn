@@ -1,0 +1,27 @@
+flowchart TB
+    H[Hub: 插拔检测] --> N[usb_new_device]
+
+    subgraph S1["① 描述符枚举"]
+        E1[usb_get_configuration]
+        E2[控制 URB / HCD]
+    end
+
+    subgraph S2["② 设备注册"]
+        D1[device_add usb_device]
+        D2[bus_probe → usb_probe_device]
+    end
+
+    subgraph S3["③ 配置激活"]
+        C1[usb_generic_driver_probe]
+        C2[usb_set_configuration]
+        C3[device_add interface × N]
+    end
+
+    subgraph S4["④ 接口绑定"]
+        I1[usb_match_id]
+        I2[usb_probe_interface]
+        I3[driver.probe]
+        I1 --> I2 --> I3
+    end
+
+    N --> S1 --> S2 --> S3 --> S4
