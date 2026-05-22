@@ -253,6 +253,7 @@ sudo trace-cmd report /tmp/usb.dat -F function_graph | less
 | 目的 | 建议 |
 |------|------|
 | 查看完整子调用树 | `-g usb_new_device` |
+| `usb_get_descriptor` 调用链说明 | [usb-get-descriptor-trace.md](usb-get-descriptor-trace.md) |
 | 关注配置与接口注册 | `-g usb_set_configuration` |
 | 跟踪接口驱动绑定 | `-l usb_probe_interface` |
 | 带内核栈 | 录制时加 `--stack` |
