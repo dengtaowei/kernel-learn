@@ -1,0 +1,36 @@
+flowchart TB
+    subgraph TASK["进程上下文 · 可睡眠"]
+        G[usb_get_descriptor]
+        C[usb_control_msg]
+        W[usb_start_wait_urb]
+        S[usb_submit_urb]
+        H[usb_hcd_submit_urb]
+        E[xhci_urb_enqueue]
+        Q[xhci_queue_ctrl_tx]
+        Wait[wait_for_completion_timeout]
+        Ret[返回 usb_free_urb]
+        G --> C --> W
+        W --> S --> H --> E --> Q
+        W --> Wait
+    end
+
+    subgraph HARD["硬中断 HARDIRQ · 不可睡眠"]
+        IRQ[xhci_irq / 处理事件环]
+        FT[finish_td]
+        GI[xhci_giveback_urb_in_irq]
+        GB[usb_hcd_giveback_urb]
+        IRQ --> FT --> GI --> GB
+    end
+
+    subgraph SOFT["软中断 SOFTIRQ · tasklet"]
+        BH[usb_giveback_urb_bh]
+        GU[__usb_hcd_giveback_urb]
+        CB[usb_api_blocking_completion]
+        CMP[complete]
+        BH --> GU --> CB --> CMP
+    end
+
+    Q -.->|doorbell / DMA| IRQ
+    GB -.->|__tasklet_schedule| BH
+    CMP -.->|唤醒| Wait
+    Wait --> Ret
