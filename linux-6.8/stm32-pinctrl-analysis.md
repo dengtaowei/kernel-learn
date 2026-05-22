@@ -305,4 +305,3 @@ flowchart LR
 4. **`function`**：`stm32_gpio_functions[selector]`；AFn → AFR 写入 n。
 5. **`group`**：`groups[selector]`；`g->pin` 定位 bank，非 selector 本身。
 6. **阶段 C**：`set_mux` 只认数字，写 MODER/AFR。
-
