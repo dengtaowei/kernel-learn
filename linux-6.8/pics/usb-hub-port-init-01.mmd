@@ -1,0 +1,15 @@
+flowchart TB
+    subgraph IRQ["Hub 状态 URB 完成"]
+        HI[hub_irq]
+        KQ[kick_hub_wq]
+        HI --> KQ
+    end
+
+    subgraph WQ["任务上下文 · hub_wq"]
+        HE[hub_event]
+        HPC[hub_port_connect]
+        HPI[hub_port_init]
+        HE --> HPC --> HPI
+    end
+
+    KQ -->|queue_work| HE

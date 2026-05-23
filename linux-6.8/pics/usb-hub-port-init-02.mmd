@@ -1,0 +1,36 @@
+flowchart TB
+    subgraph TASK["任务上下文 · hub_wq"]
+        START[hub_port_init]
+        RST[hub_port_reset]
+        EP0[get_bMaxPacketSize0]
+        ADDR[hub_set_address / xhci_address_device]
+        DEV[usb_get_device_descriptor]
+        BOS[usb_get_bos_descriptor]
+        UPD[xhci_update_device]
+        START --> RST --> EP0 --> ADDR --> DEV --> BOS --> UPD
+    end
+
+    subgraph RH["Root Hub 控制 · rh_call_control"]
+        RST --> RHCTL[xhci_hub_control]
+    end
+
+    subgraph DEVURB["下游设备 EP0 · xhci_urb_enqueue"]
+        EP0 --> X1[xhci_queue_ctrl_tx]
+        DEV --> X2[xhci_queue_ctrl_tx]
+        BOS --> X3[xhci_queue_ctrl_tx]
+    end
+
+    subgraph HARD["硬中断"]
+        X1 -.-> IRQ[xhci_irq]
+        X2 -.-> IRQ
+        X3 -.-> IRQ
+    end
+
+    subgraph SOFT["软中断 · tasklet"]
+        IRQ --> BH[usb_giveback_urb_bh]
+        BH --> CB[usb_api_blocking_completion]
+    end
+
+    CB -.->|唤醒| EP0
+    CB -.->|唤醒| DEV
+    CB -.->|唤醒| BOS
