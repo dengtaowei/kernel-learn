@@ -1,7 +1,7 @@
 # `usb_get_descriptor` 调用链
 
 > Linux 6.8 · `drivers/usb/core/message.c`  
-> 关联文档：[USB 协议枚举](usb_enumeration.md) · [内核枚举与 Probe](usb-enumeration-and-probe.md)
+> 关联文档：[USB 协议枚举](usb_enumeration.md) · [内核枚举与 Probe](usb-enumeration-and-probe.md) · [`hub_port_init`](usb-hub-port-init.md)
 
 ---
 
@@ -15,9 +15,9 @@
 
 ## 1. 一次完整调用栈
 
-Hub 工作线程等对**普通外设**（非 Root Hub）发起 GET_DESCRIPTOR 时，单次调用从 core 到 xHCI 再返回的大致路径如下（省略 `kmalloc`、`__cond_resched` 等噪声）。
+Hub `hub_wq` 线程等对**普通外设**（非 Root Hub）发起 GET_DESCRIPTOR 时（此前由 [`hub_port_init`](usb-hub-port-init.md) 完成地址与 EP0 包长），单次调用从 core 到 xHCI 再返回的大致路径如下（省略 `kmalloc`、`__cond_resched` 等噪声）。
 
-### 1.1 向下：提交 URB（进程上下文）
+### 1.1 向下：提交 URB（任务上下文 · 可睡眠）
 
 ```text
 usb_get_descriptor()                          message.c
@@ -55,7 +55,7 @@ usb_get_descriptor()                          message.c
                 └── usb_api_blocking_completion()
                       └── complete(&ctx->done)
 
-【进程上下文 · 同一线程被唤醒】
+【任务上下文 · 同一线程被唤醒】
   wait_for_completion_timeout() 返回
     └── usb_free_urb()
           └── usb_control_msg() / usb_get_descriptor() 返回
@@ -65,7 +65,7 @@ usb_get_descriptor()                          message.c
 
 ```mermaid
 flowchart TB
-    subgraph TASK["进程上下文 · 可睡眠"]
+    subgraph TASK["任务上下文 · hub_wq · 可睡眠"]
         G[usb_get_descriptor]
         C[usb_control_msg]
         W[usb_start_wait_urb]
@@ -106,10 +106,10 @@ flowchart TB
 
 | 阶段 | 典型执行上下文 | 说明 |
 |------|----------------|------|
-| 提交 URB | 进程上下文（Hub `kworker`） | 可调用 `usb_control_msg`、可 `schedule` 睡眠 |
+| 提交 URB | 任务上下文（Hub `kworker` / `hub_wq`） | 可调用 `usb_control_msg`、可 `schedule` 睡眠 |
 | xHCI 收 completion | **硬中断** | 解析事件环、`finish_td`；`giveback_urb` 只排队 tasklet |
 | 调 `urb->complete` | **软中断**（`usb_giveback_urb_bh`） | xHCI 设 `HCD_BH`；`complete()` 不可睡眠 |
-| 唤醒后继续 | 进程上下文 | `wait_for_completion_timeout` 返回，释放 URB |
+| 唤醒后继续 | 任务上下文 | `wait_for_completion_timeout` 返回，释放 URB |
 
 ---
 
